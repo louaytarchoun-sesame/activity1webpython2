@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %} Étudiants {% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+        <h1 class="mb-1">Étudiants</h1>
+        <p class="text-muted mb-0">Liste de tous les étudiants inscrits.</p>
+    </div>
+    <a href="{{ url_for('EtudiantRouter.ajouter_etudiant') }}" class="btn btn-primary">Nouvel étudiant</a>
+</div>
+
+{% if etudiants %}
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0 align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">NCE</th>
+                        <th scope="col">Nom</th>
+                        <th scope="col">Prénom</th>
+                        <th scope="col">Date de naissance</th>
+                        <th scope="col">Lieu de naissance</th>
+                        <th scope="col">Classe</th>
+                        <th scope="col" class="text-end">Historique</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for etudiant in etudiants %}
+                    <tr>
+                        <td>{{ etudiant.nce }}</td>
+                        <td>{{ etudiant.nom }}</td>
+                        <td>{{ etudiant.prenom }}</td>
+                        <td>{{ etudiant.dateNais }}</td>
+                        <td>{{ etudiant.lieuNais }}</td>
+                        <td>{{ etudiant.classe.nomClass if etudiant.classe else '—' }}</td>
+                        <td class="text-end">
+                            <a href="{{ url_for('AbsenceRouter.absence_etudiant', nce=etudiant.nce) }}" class="btn btn-sm btn-outline-secondary">Historique</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card border-0 shadow-sm">
+    <div class="card-body text-center py-5">
+        <h3 class="h5">Aucun étudiant enregistré</h3>
+        <p class="text-muted mb-3">Commencez par ajouter le premier étudiant.</p>
+        <a href="{{ url_for('EtudiantRouter.ajouter_etudiant') }}" class="btn btn-primary">Ajouter un étudiant</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

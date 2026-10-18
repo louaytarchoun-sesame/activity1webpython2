@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %} Nouvel étudiant {% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-7 col-lg-8 col-md-10">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4 p-md-5">
+                <div class="mb-4">
+                    <h1 class="h3 mb-1">Nouvel étudiant</h1>
+                    <p class="text-muted mb-0">Ajoutez un étudiant et associez-le à une classe.</p>
+                </div>
+
+                {% if not classes %}
+                    <div class="alert alert-warning" role="alert">
+                        Aucune classe n'est disponible pour le moment. Créez d'abord une classe pour pouvoir enregistrer un étudiant.
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="{{ url_for('ClasseRouter.ajouter_classe') }}" class="btn btn-primary">Créer une classe</a>
+                        <a href="{{ url_for('EtudiantRouter.liste_etudiants') }}" class="btn btn-outline-secondary">Retour</a>
+                    </div>
+                {% else %}
+                    <form method="POST" novalidate>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="nce" class="form-label">NCE</label>
+                                <input type="text" class="form-control {% if errors.nce %}is-invalid{% endif %}" id="nce" name="nce" value="{{ form_data.nce }}" maxlength="5" required>
+                                {% if errors.nce %}
+                                    <div class="invalid-feedback d-block">{{ errors.nce }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="classe_id" class="form-label">Classe</label>
+                                <select class="form-select {% if errors.classe_id %}is-invalid{% endif %}" id="classe_id" name="classe_id" required>
+                                    <option value="">Choisir une classe</option>
+                                    {% for classe in classes %}
+                                        <option value="{{ classe.codClass }}" {% if form_data.classe_id == classe.codClass %}selected{% endif %}>{{ classe.nomClass }} ({{ classe.codClass }})</option>
+                                    {% endfor %}
+                                </select>
+                                {% if errors.classe_id %}
+                                    <div class="invalid-feedback d-block">{{ errors.classe_id }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="nom" class="form-label">Nom</label>
+                                <input type="text" class="form-control {% if errors.nom %}is-invalid{% endif %}" id="nom" name="nom" value="{{ form_data.nom }}" maxlength="15" required>
+                                {% if errors.nom %}
+                                    <div class="invalid-feedback d-block">{{ errors.nom }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="prenom" class="form-label">Prénom</label>
+                                <input type="text" class="form-control {% if errors.prenom %}is-invalid{% endif %}" id="prenom" name="prenom" value="{{ form_data.prenom }}" maxlength="15" required>
+                                {% if errors.prenom %}
+                                    <div class="invalid-feedback d-block">{{ errors.prenom }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="dateNais" class="form-label">Date de naissance</label>
+                                <input type="date" class="form-control {% if errors.dateNais %}is-invalid{% endif %}" id="dateNais" name="dateNais" value="{{ form_data.dateNais }}" required>
+                                {% if errors.dateNais %}
+                                    <div class="invalid-feedback d-block">{{ errors.dateNais }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="lieuNais" class="form-label">Lieu de naissance</label>
+                                <input type="text" class="form-control {% if errors.lieuNais %}is-invalid{% endif %}" id="lieuNais" name="lieuNais" value="{{ form_data.lieuNais }}" maxlength="15" required>
+                                {% if errors.lieuNais %}
+                                    <div class="invalid-feedback d-block">{{ errors.lieuNais }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-4">
+                            <a href="{{ url_for('EtudiantRouter.liste_etudiants') }}" class="btn btn-outline-secondary">Retour</a>
+                            <button type="submit" class="btn btn-primary">Enregistrer</button>
+                        </div>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

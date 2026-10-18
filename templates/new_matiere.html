@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %} Nouvelle matière {% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4 p-md-5">
+                <div class="mb-4">
+                    <h1 class="h3 mb-1">Nouvelle matière</h1>
+                    <p class="text-muted mb-0">Créez une matière pour la gestion scolaire.</p>
+                </div>
+
+                <form method="POST" novalidate>
+                    <div class="mb-3">
+                        <label for="codeMat" class="form-label">Code de la matière</label>
+                        <input type="text" class="form-control {% if errors.codeMat %}is-invalid{% endif %}" id="codeMat" name="codeMat" value="{{ form_data.codeMat }}" maxlength="10" required>
+                        {% if errors.codeMat %}
+                            <div class="invalid-feedback d-block">{{ errors.codeMat }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="intMat" class="form-label">Nom de la matière</label>
+                        <input type="text" class="form-control {% if errors.intMat %}is-invalid{% endif %}" id="intMat" name="intMat" value="{{ form_data.intMat }}" maxlength="20" required>
+                        {% if errors.intMat %}
+                            <div class="invalid-feedback d-block">{{ errors.intMat }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" maxlength="40">{{ form_data.description }}</textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <a href="{{ url_for('MatiereRouter.liste_matieres') }}" class="btn btn-outline-secondary">Retour</a>
+                        <button type="submit" class="btn btn-primary">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

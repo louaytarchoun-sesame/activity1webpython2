@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %} Nouvelle classe {% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4 p-md-5">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h1 class="h3 mb-1">Nouvelle classe</h1>
+                        <p class="text-muted mb-0">Ajoutez une classe à la gestion scolaire.</p>
+                    </div>
+                </div>
+
+                <form method="POST" novalidate>
+                    <div class="mb-3">
+                        <label for="codClass" class="form-label">Code de la classe</label>
+                        <input type="text" class="form-control {% if errors.codClass %}is-invalid{% endif %}" id="codClass" name="codClass" value="{{ form_data.codClass }}" maxlength="10" required>
+                        {% if errors.codClass %}
+                            <div class="invalid-feedback d-block">{{ errors.codClass }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="nomClass" class="form-label">Nom de la classe</label>
+                        <input type="text" class="form-control {% if errors.nomClass %}is-invalid{% endif %}" id="nomClass" name="nomClass" value="{{ form_data.nomClass }}" maxlength="20" required>
+                        {% if errors.nomClass %}
+                            <div class="invalid-feedback d-block">{{ errors.nomClass }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="nbrEtudiant" class="form-label">Nombre d'étudiants</label>
+                        <input type="number" class="form-control {% if errors.nbrEtudiant %}is-invalid{% endif %}" id="nbrEtudiant" name="nbrEtudiant" value="{{ form_data.nbrEtudiant if form_data.nbrEtudiant != '' else 0 }}" min="0" step="1">
+                        {% if errors.nbrEtudiant %}
+                            <div class="invalid-feedback d-block">{{ errors.nbrEtudiant }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <a href="{{ url_for('ClasseRouter.liste_classes') }}" class="btn btn-outline-secondary">Retour</a>
+                        <button type="submit" class="btn btn-primary">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

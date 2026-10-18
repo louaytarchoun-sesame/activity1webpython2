@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %} Historique d'absences {% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+        <h1 class="mb-1">Historique des absences</h1>
+        <p class="text-muted mb-0">Étudiant : {{ etudiant.prenom }} {{ etudiant.nom }}</p>
+    </div>
+    <a href="{{ url_for('EtudiantRouter.liste_etudiants') }}" class="btn btn-outline-secondary">Retour aux étudiants</a>
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <p class="mb-1 text-muted">Classe</p>
+                <h2 class="h5 mb-0">{{ etudiant.classe.nomClass if etudiant.classe else '—' }}</h2>
+            </div>
+            <div class="col-md-6">
+                <p class="mb-1 text-muted">Étudiant</p>
+                <h2 class="h5 mb-0">{{ etudiant.nce }} - {{ etudiant.prenom }} {{ etudiant.nom }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if absences %}
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0 align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">Date absence</th>
+                        <th scope="col">Code matière</th>
+                        <th scope="col">NHA</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for absence in absences %}
+                    <tr>
+                        <td>{{ absence.dateA.strftime('%d-%m-%Y') }}</td>
+                        <td>{{ absence.codeMat }}</td>
+                        <td>{{ absence.nha }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info" role="alert">
+    Aucun historique d'absence n'est enregistré pour cet étudiant.
+</div>
+{% endif %}
+{% endblock %}
