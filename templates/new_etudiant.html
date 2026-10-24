@@ -21,7 +21,14 @@
                         <a href="{{ url_for('EtudiantRouter.liste_etudiants') }}" class="btn btn-outline-secondary">Retour</a>
                     </div>
                 {% else %}
-                    <form method="POST" novalidate>
+                    <form method="POST" enctype="multipart/form-data" novalidate>
+                        <div class="mb-3">
+                            <label for="photo" class="form-label">Photo de l'étudiant (facultative)</label>
+                            <input type="file" class="form-control {% if errors.photo %}is-invalid{% endif %}" id="photo" name="photo" accept="image/png,image/jpeg,image/gif">
+                            {% if errors.photo %}
+                                <div class="invalid-feedback d-block">{{ errors.photo }}</div>
+                            {% endif %}
+                        </div>
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label for="nce" class="form-label">NCE</label>
@@ -75,6 +82,7 @@
                                     <div class="invalid-feedback d-block">{{ errors.lieuNais }}</div>
                                 {% endif %}
                             </div>
+
                         </div>
 
                         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-4">
