@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Matières avec le plus d'absences{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h1 class="h2 mb-1">Matières avec le plus d'absences</h1>
+    <p class="text-muted mb-0">Total des heures d'absence, toutes classes confondues.</p>
+</div>
+
+{% if matieres %}
+<div class="table-responsive">
+    <table class="table table-striped table-hover align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">Code matière</th>
+                <th scope="col">Intitulé</th>
+                <th scope="col" class="text-end">Total NHA</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for code_mat, int_mat, total in matieres %}
+            <tr>
+                <td>{{ code_mat }}</td>
+                <td>{{ int_mat }}</td>
+                <td class="text-end">{{ "%.2f" | format(total) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="alert alert-info">Aucune absence enregistrée.</p>
+{% endif %}
+{% endblock %}

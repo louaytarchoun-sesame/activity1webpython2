@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Total des absences{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h1 class="h2 mb-1">Total des absences par matière</h1>
+    <p class="text-muted mb-1">{{ etudiant.prenom }} {{ etudiant.nom }} ({{ etudiant.nce }})</p>
+    <p class="text-muted mb-0">Classe : {{ classe.nomClass if classe else 'Aucune classe' }}</p>
+</div>
+
+{% if totaux %}
+<div class="table-responsive">
+    <table class="table table-striped table-hover align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">Code matière</th>
+                <th scope="col">Intitulé</th>
+                <th scope="col" class="text-end">Total NHA</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for matiere, total in totaux %}
+            <tr>
+                <td>{{ matiere.codeMat }}</td>
+                <td>{{ matiere.intMat }}</td>
+                <td class="text-end">{{ total }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="alert alert-info">Aucune absence enregistrée pour cet étudiant.</p>
+{% endif %}
+{% endblock %}

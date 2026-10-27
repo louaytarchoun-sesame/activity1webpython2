@@ -6,6 +6,7 @@ class Etudiant(db.Model):
     prenom = db.Column(db.String(15))
     dateNais = db.Column(db.Date())
     lieuNais = db.Column(db.String(15))
+    photo = db.Column(db.String(255), nullable=True)
     
     classe_id = db.Column(db.String(10), db.ForeignKey ('classe.codClass', onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
     classe = db.relationship("Classe", back_populates='etudiants')

@@ -1,13 +1,38 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from models.Classe import Classe
 from extensions import db
+from models.Etudiant import Etudiant
+from sqlalchemy import func
 
 ClasseRouter = Blueprint("ClasseRouter", __name__, url_prefix="/classes")
 
-@ClasseRouter.route('/liste_classes', methods=["GET"])
-def liste_classes():
-    classes = Classe.query.order_by(Classe.codClass.asc()).all()
-    return render_template('classes.html', classes=classes)
+
+@ClasseRouter.route('/top-classe', methods=["GET"])
+def top_classe():
+    classes = (
+        db.session.query(Classe, func.count(Etudiant.nce).label('total'))
+        .outerjoin(Etudiant, Etudiant.classe_id == Classe.codClass)
+        .group_by(Classe.codClass)
+        .order_by(func.count(Etudiant.nce).desc())
+        .all()
+    )
+
+    if classes:
+        for classe_objet, nombre_reel in classes:
+            classe_objet.nbrEtudiant = nombre_reel
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+    return render_template('top_classe.html', classes=classes)
+
+
+
+# @ClasseRouter.route('/liste_classes', methods=["GET"])
+# def liste_classes():
+#     classes = Classe.query.order_by(Classe.codClass.asc()).all()
+#     return render_template('classes.html', classes=classes)
 
 @ClasseRouter.route('/ajouter_classe', methods=['GET', 'POST'])
 def ajouter_classe():
@@ -51,7 +76,7 @@ def ajouter_classe():
             try:
                 db.session.commit()
                 flash('Classe créée avec succès.', 'success')
-                return redirect(url_for('ClasseRouter.liste_classes'))
+                return redirect(url_for('ClasseRouter.top_classe'))
             except Exception:
                 db.session.rollback()
                 flash('Une erreur est survenue lors de la création de la classe.', 'error')
