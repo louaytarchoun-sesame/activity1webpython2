@@ -12,9 +12,10 @@
             <a class="navbar-brand fw-bold" href="{{ url_for('index') }}">Scol</a>
             <div class="navbar-nav ms-auto gap-2">
                 <a class="nav-link" href="{{ url_for('index') }}">Accueil</a>
-                <a class="nav-link" href="{{ url_for('ClasseRouter.liste_classes') }}">Classes</a>
+                <a class="nav-link" href="{{ url_for('ClasseRouter.top_classe') }}">Classes</a>
                 <a class="nav-link" href="{{ url_for('EtudiantRouter.liste_etudiants') }}">Étudiants</a>
                 <a class="nav-link" href="{{ url_for('MatiereRouter.liste_matieres') }}">Matières</a>
+                <a class="nav-link" href="{{ url_for('AbsenceRouter.top_absences') }}">Top absences</a>
             </div>
         </nav>
     </header>

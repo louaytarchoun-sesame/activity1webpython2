@@ -45,7 +45,7 @@
                         <td>{{ etudiant.lieuNais }}</td>
                         <td>{{ etudiant.classe.nomClass if etudiant.classe else '—' }}</td>
                         <td class="text-end text-nowrap">
-                            <a href="{{ url_for('AbsenceRouter.absence_etudiant', nce=etudiant.nce) }}" class="btn btn-sm btn-outline-secondary">Historique</a>
+                            <a href="{{ url_for('AbsenceRouter.totAbsece_Etudiant', nce_id=etudiant.nce) }}" class="btn btn-sm btn-outline-secondary">Absences</a>
                             <a href="{{ url_for('EtudiantRouter.modifier_etudiant', nce=etudiant.nce) }}" class="btn btn-sm btn-outline-primary">Modifier</a>
                             <form method="POST" action="{{ url_for('EtudiantRouter.supprimer_etudiant', nce=etudiant.nce) }}" class="d-inline" onsubmit="return confirm('Supprimer cet étudiant ?');">
                                 <button type="submit" class="btn btn-sm btn-outline-danger">Supprimer</button>

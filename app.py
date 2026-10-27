@@ -3,6 +3,7 @@ import os
 from flask import Flask, render_template
 from flask_uploads import configure_uploads
 
+
 from extensions import db, photos
 
 app = Flask(__name__)

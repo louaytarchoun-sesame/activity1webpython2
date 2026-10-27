@@ -7,6 +7,7 @@ from models.Absence import Absence
 from models.Classe import Classe
 from models.Etudiant import Etudiant
 from models.Matiere import Matiere
+from sqlalchemy import func
 
 AbsenceRouter = Blueprint('AbsenceRouter', __name__, url_prefix='/absences')
 
@@ -18,6 +19,42 @@ def _parse_date(value):
         return datetime.strptime(value, '%Y-%m-%d').date()
     except ValueError:
         return None
+
+
+@AbsenceRouter.route('/top-absences', methods=['GET'])
+def top_absences():
+    matieres = (
+        db.session.query(
+            Matiere.codeMat,
+            Matiere.intMat,
+            func.sum(Absence.nha).label('total_nha'),
+        )
+        .join(Absence, Absence.codeMat == Matiere.codeMat)
+        .group_by(Matiere.codeMat, Matiere.intMat)
+        .order_by(func.sum(Absence.nha).desc())
+        .limit(3)
+        .all()
+    )
+    return render_template('top_absences.html', matieres=matieres)
+
+
+@AbsenceRouter.route('/absences/<string:nce_id>', methods=['GET'])
+def totAbsece_Etudiant(nce_id):
+    etudiant = Etudiant.query.get_or_404(nce_id)
+    totaux = (
+        db.session.query(Matiere, db.func.sum(Absence.nha).label('total_nha'))
+        .join(Absence, Absence.codeMat == Matiere.codeMat)
+        .filter(Absence.nce == etudiant.nce)
+        .group_by(Matiere.codeMat)
+        .order_by(Matiere.codeMat.asc())
+        .all()
+    )
+    return render_template(
+        'totAbsece_Etudiant.html',
+        etudiant=etudiant,
+        classe=etudiant.classe,
+        totaux=totaux,
+    )
 
 
 @AbsenceRouter.route('/matiere/<codeMat>', methods=['GET', 'POST'])
@@ -178,136 +215,97 @@ def absence_classe(codClass):
     classe = Classe.query.get(codClass)
     if not classe:
         flash('Classe introuvable.', 'error')
-        return redirect(url_for('ClasseRouter.liste_classes'))
+        return redirect(url_for('ClasseRouter.top_classe'))
 
     matieres = Matiere.query.order_by(Matiere.intMat.asc()).all()
     selected_mat = request.form.get('codeMat', '') or request.args.get('codeMat', '')
     selected_date = request.form.get('dateA', '') or request.args.get('dateA', '')
     nha_value = request.form.get('nha', '') or request.args.get('nha', '')
     students = Etudiant.query.filter_by(classe_id=codClass).order_by(Etudiant.nom.asc(), Etudiant.prenom.asc()).all()
+    selected_student_ids = request.form.getlist('absent_students') if request.method == 'POST' else []
 
     if request.method == 'POST':
-        action = request.form.get('action')
-        if action == 'show_students':
-            errors = []
-            if not selected_mat:
-                errors.append('Veuillez sélectionner une matière.')
-            if not selected_date:
-                errors.append('La date d\'absence est obligatoire.')
-            if not nha_value:
-                errors.append('Le nombre d\'heures est obligatoire.')
+        errors = []
+        if not selected_mat:
+            errors.append('Veuillez sélectionner une matière.')
+        if not selected_date:
+            errors.append('La date d\'absence est obligatoire.')
+        if not nha_value:
+            errors.append('Le nombre d\'heures est obligatoire.')
 
-            if not errors:
-                matiere = Matiere.query.get(selected_mat)
-                if not matiere:
-                    errors.append('La matière sélectionnée est introuvable.')
-                else:
-                    parsed_date = _parse_date(selected_date)
-                    if parsed_date is None:
-                        errors.append('La date est invalide.')
-                    else:
-                        try:
-                            nha = float(nha_value)
-                        except ValueError:
-                            errors.append('Le nombre d\'heures doit être un nombre valide.')
-                        else:
-                            if nha < 0:
-                                errors.append('Le nombre d\'heures doit être positif.')
-                            else:
-                                students = Etudiant.query.filter_by(classe_id=codClass).order_by(Etudiant.nom.asc(), Etudiant.prenom.asc()).all()
-                                if not students:
-                                    flash('Aucun étudiant n\'est inscrit dans cette classe.', 'warning')
-                                return render_template(
-                                    'absence_classe.html',
-                                    classe=classe,
-                                    matieres=matieres,
-                                    selected_mat=selected_mat,
-                                    selected_date=selected_date,
-                                    nha=nha_value,
-                                    students=students,
-                                    subject_date=parsed_date,
-                                    subject_hours=nha,
-                                )
+        matiere = Matiere.query.get(selected_mat) if selected_mat else None
+        if selected_mat and not matiere:
+            errors.append('La matière sélectionnée est introuvable.')
 
+        parsed_date = _parse_date(selected_date) if selected_date else None
+        if selected_date and parsed_date is None:
+            errors.append('La date est invalide.')
+
+        try:
+            nha = float(nha_value) if nha_value else 0.0
+        except ValueError:
+            errors.append('Le nombre d\'heures doit être un nombre valide.')
+            nha = 0.0
+
+        if nha < 0:
+            errors.append('Le nombre d\'heures doit être positif.')
+
+        valid_student_ids = []
+        if selected_student_ids:
+            for student_id in selected_student_ids:
+                student = db.session.get(Etudiant, student_id)
+                if student is None:
+                    errors.append('Un étudiant sélectionné est introuvable.')
+                    continue
+                if student.classe_id != codClass:
+                    errors.append('Un étudiant sélectionné n\'appartient pas à cette classe.')
+                    continue
+                valid_student_ids.append(student_id)
+        else:
+            errors.append('Aucun étudiant absent n\'a été sélectionné.')
+
+        if errors:
             for error in errors:
                 flash(error, 'error')
+            return render_template(
+                'absence_classe.html',
+                classe=classe,
+                matieres=matieres,
+                selected_mat=selected_mat,
+                selected_date=selected_date,
+                nha=nha_value,
+                students=students,
+                selected_student_ids=selected_student_ids,
+            )
 
-        elif action == 'save_absences':
-            errors = []
-            if not selected_mat:
-                errors.append('Veuillez sélectionner une matière.')
-            if not selected_date:
-                errors.append('La date d\'absence est obligatoire.')
-            if not nha_value:
-                errors.append('Le nombre d\'heures est obligatoire.')
+        created = 0
+        for student_id in valid_student_ids:
+            existing = Absence.query.filter_by(codeMat=selected_mat, nce=student_id, dateA=parsed_date).first()
+            if existing is not None:
+                continue
+            db.session.add(Absence(codeMat=selected_mat, nce=student_id, dateA=parsed_date, nha=nha))
+            created += 1
 
-            matiere = Matiere.query.get(selected_mat) if selected_mat else None
-            if selected_mat and not matiere:
-                errors.append('La matière sélectionnée est introuvable.')
+        if created == 0:
+            flash('Aucun enregistrement d\'absence n\'a été créé. Les étudiants sélectionnés sont déjà enregistrés pour cette matière et cette date.', 'warning')
+            return render_template(
+                'absence_classe.html',
+                classe=classe,
+                matieres=matieres,
+                selected_mat=selected_mat,
+                selected_date=selected_date,
+                nha=nha_value,
+                students=students,
+                selected_student_ids=selected_student_ids,
+            )
 
-            parsed_date = _parse_date(selected_date) if selected_date else None
-            if selected_date and parsed_date is None:
-                errors.append('La date est invalide.')
-
-            try:
-                nha = float(nha_value) if nha_value else 0.0
-            except ValueError:
-                errors.append('Le nombre d\'heures doit être un nombre valide.')
-                nha = 0.0
-
-            if nha < 0:
-                errors.append('Le nombre d\'heures doit être positif.')
-
-            selected_student_ids = request.form.getlist('absent_students')
-            valid_student_ids = []
-            if selected_student_ids:
-                for student_id in selected_student_ids:
-                    student = Etudiant.query.get(student_id)
-                    if student is None:
-                        errors.append('Un étudiant sélectionné est introuvable.')
-                        continue
-                    if student.classe_id != codClass:
-                        errors.append('Un étudiant sélectionné n\'appartient pas à la classe choisie.')
-                        continue
-                    valid_student_ids.append(student_id)
-            else:
-                errors.append('Aucun étudiant absent n\'a été sélectionné.')
-
-            if errors:
-                for error in errors:
-                    flash(error, 'error')
-                students = Etudiant.query.filter_by(classe_id=codClass).order_by(Etudiant.nom.asc(), Etudiant.prenom.asc()).all() if codClass else []
-                return render_template(
-                    'absence_classe.html',
-                    classe=classe,
-                    matieres=matieres,
-                    selected_mat=selected_mat,
-                    selected_date=selected_date,
-                    nha=nha_value,
-                    students=students,
-                    subject_date=parsed_date,
-                    subject_hours=nha,
-                )
-
-            created = 0
-            for student_id in valid_student_ids:
-                existing = Absence.query.filter_by(codeMat=selected_mat, nce=student_id, dateA=parsed_date).first()
-                if existing is not None:
-                    continue
-                db.session.add(Absence(codeMat=selected_mat, nce=student_id, dateA=parsed_date, nha=nha))
-                created += 1
-
-            if created == 0:
-                flash('Aucun enregistrement d\'absence n\'a été créé. Les étudiants sélectionnés sont déjà enregistrés pour cette matière et cette date.', 'warning')
-                return redirect(url_for('ClasseRouter.liste_classes'))
-
-            try:
-                db.session.commit()
-                flash(f'{created} absence(s) enregistrée(s) avec succès.', 'success')
-                return redirect(url_for('ClasseRouter.liste_classes'))
-            except Exception:
-                db.session.rollback()
-                flash('Une erreur est survenue lors de l\'enregistrement des absences.', 'error')
+        try:
+            db.session.commit()
+            flash(f'{created} absence(s) enregistrée(s) avec succès.', 'success')
+            return redirect(url_for('ClasseRouter.top_classe'))
+        except Exception:
+            db.session.rollback()
+            flash('Une erreur est survenue lors de l\'enregistrement des absences.', 'error')
 
     return render_template(
         'absence_classe.html',
@@ -317,6 +315,7 @@ def absence_classe(codClass):
         selected_date=selected_date,
         nha=nha_value,
         students=students,
+        selected_student_ids=selected_student_ids,
     )
 
 
